@@ -164,7 +164,6 @@ export class UICtrl {
     }
 
     createChangePageButtons(url, currentPage, totalPages) {
-        console.log('Create change page buttons')
         const changePageButtons = document.createElement('div');
         changePageButtons.className = 'change_page_flex';
         changePageButtons.innerHTML = `
@@ -183,8 +182,6 @@ export class UICtrl {
             <button id="next_page_btn" data-url="${url}"><i class="fas fa-long-arrow-alt-right"></i></button>
         </div>
         `;
-        console.log('Current Page:',currentPage);
-        console.log('Total pages:',totalPages);
         if (currentPage === 1) {
             changePageButtons.querySelector('#previous_page_btn').setAttribute('disabled', true);
             changePageButtons.querySelector('#previous_page_btn').classList.add('disabled');

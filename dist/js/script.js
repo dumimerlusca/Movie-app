@@ -195,7 +195,7 @@ function initEventListeners() {
     // Change page buttons
         // Next page btn
     document.body.addEventListener('click', (e) => {
-        if (e.target.parentElement.id === 'next_page_btn') {
+        if (e.target.parentElement.id === 'next_page_btn' && !(e.target.parentElement.hasAttribute('disabled'))) {
             e.preventDefault();
             const url = e.target.parentElement.getAttribute('data-url');
             const newUrl = newUrlForNextPage(url);
@@ -204,7 +204,7 @@ function initEventListeners() {
     })
         // Previous page btn
     document.body.addEventListener('click', (e) => {
-        if (e.target.parentElement.id === 'previous_page_btn') {
+        if (e.target.parentElement.id === 'previous_page_btn' && !(e.target.parentElement.hasAttribute('disabled'))) {
             e.preventDefault();
             const url = e.target.parentElement.getAttribute('data-url');
             const newUrl = newUrlForPreviousPage(url);
@@ -224,8 +224,6 @@ function getData(url, callback) {
             } else {
                 dataCtrl.totalPages = 1;
             }
-
-            console.log('Total pages in get Data', dataCtrl.totalPages)
             callback(data)
         })
         .catch(err => console.log(err))

@@ -80,7 +80,6 @@ class UIMovies extends UICtrl {
             },100)
         } else {
             const actors = data.cast.slice(0, 5);
-            console.log('Actors:', actors)
             actors.forEach(actor => {
                 const actorEl = super.createActorElement(actor);
                 actorsContainer.appendChild(actorEl)
