@@ -34,12 +34,16 @@ function initEventListeners() {
         e.preventDefault();
         const query = ui.searchInput.value;
         const whatToSearchFor = ui.searchOption.value;
+        ui.clearMainContainer();
         switch (whatToSearchFor.toLowerCase()) {
             case 'movies': {
-                ui.clearMainContainer();
                 dataCtrl.currentMediaType = 'movie';
                 dataCtrl.currentPage = 1;
                 const movies = await getSearchedMovies(query, 1);
+                if (movies.results.length === 0) {
+                    ui.showMessage('No results...');
+                    return;
+                }
                 uiMovies.showSearched(movies);
                 const url = urlCtrl.getUrlForQueryMovieSearch(query, 1);
                 ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
@@ -49,6 +53,10 @@ function initEventListeners() {
                 dataCtrl.currentMediaType = 'tv';
                 dataCtrl.currentPage = 1;
                 const tvShows = await getSearchedTvShows(query, 1);
+                if (tvShows.results.length === 0) {
+                    ui.showMessage('No results...');
+                    return;
+                }
                 uiTv.showSearched(tvShows);
                 const url = urlCtrl.getUrlForQueryTvShowsSearch(query, 1);
                 ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
@@ -58,6 +66,10 @@ function initEventListeners() {
                 dataCtrl.currentMediaType = 'all';
                 dataCtrl.currentPage = 1;
                 const items = await getSearchedMoviesAndTvShows(query, 1);
+                if (items.results.length === 0) {
+                    ui.showMessage('No results...');
+                    return;
+                }
                 ui.showSearchedAll(items, uiTv.genres, uiMovies.genres);
                 const url = urlCtrl.getUrlForQueryMultiSearch(query, 1);
                 ui.createChangePageButtons(url, dataCtrl.page, dataCtrl.totalPages)

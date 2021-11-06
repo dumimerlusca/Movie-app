@@ -202,6 +202,14 @@ export class UICtrl {
             this.mainContainer.insertAdjacentElement('beforeend',changePageButtons);
         }, 50)
     }
+
+    showMessage(message) {
+        const messageEl = document.createElement('div');
+        messageEl.innerHTML = `
+            <h2 class='message thin'>${message}</h2>
+        `;
+        this.mainContainer.insertAdjacentElement('afterbegin', messageEl);
+    }
 }
 
 
