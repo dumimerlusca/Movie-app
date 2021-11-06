@@ -1,5 +1,5 @@
-# Movie-app
-Movies app
+# Movie-app / Single page app / Vanilla javascript / dynamic content
+Movie app
 
 Single page app for searching movies and tv show
 
