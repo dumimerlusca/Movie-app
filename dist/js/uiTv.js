@@ -14,7 +14,6 @@ class UITv extends UICtrl {
         detailsModal.className = 'details_about_item_modal';
         detailsModal.innerHTML = `
         <div class="details_container">
-            
             <div class="similar_movies">
                 <h3>Similar Tv Shows</h3>
                 <div class="similar_movies_cards_container">
