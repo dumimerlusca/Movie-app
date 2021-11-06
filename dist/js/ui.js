@@ -86,7 +86,7 @@ export class UICtrl {
             </div>
             <div class="movie_details">
                 <span class="movie_title">${tvShow.name}</span>
-                <span class="rating">${tvShow.vote_average}</span>
+                <span class="rating">${parseFloat(tvShow.vote_average).toFixed(1)}</span>
             </div>
             <p class="genres">${genresStr}</p>
             <div class="overlay_for_click"></div>
