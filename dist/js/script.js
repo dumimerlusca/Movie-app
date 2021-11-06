@@ -30,7 +30,7 @@ function initEventListeners() {
         }
     })
         // Search form 
-    ui.searchForm.addEventListener('submit', (e) => {
+    ui.searchForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const query = ui.searchInput.value;
         const whatToSearchFor = ui.searchOption.value;
@@ -39,19 +39,28 @@ function initEventListeners() {
                 ui.clearMainContainer();
                 dataCtrl.currentMediaType = 'movie';
                 dataCtrl.currentPage = 1;
-                getSearchedMovies(query, 1);
+                const movies = await getSearchedMovies(query, 1);
+                uiMovies.showSearched(movies);
+                const url = urlCtrl.getUrlForQueryMovieSearch(query, 1);
+                ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
                 break;
             }
             case 'tvshows': {
                 dataCtrl.currentMediaType = 'tv';
                 dataCtrl.currentPage = 1;
-                getSearchedTvShows(query, 1);
+                const tvShows = await getSearchedTvShows(query, 1);
+                uiTv.showSearched(tvShows);
+                const url = urlCtrl.getUrlForQueryTvShowsSearch(query, 1);
+                ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
                 break;
             }
             case 'all': {
                 dataCtrl.currentMediaType = 'all';
                 dataCtrl.currentPage = 1;
-                getSearchedMoviesAndTvShows(query, 1);
+                const items = await getSearchedMoviesAndTvShows(query, 1);
+                ui.showSearchedAll(items, uiTv.genres, uiMovies.genres);
+                const url = urlCtrl.getUrlForQueryMultiSearch(query, 1);
+                ui.createChangePageButtons(url, dataCtrl.page, dataCtrl.totalPages)
                 break;
             }
         }
@@ -64,22 +73,18 @@ function initEventListeners() {
         const mediaType = item.getAttribute('data-media-type');
         const id = item.getAttribute('data-id');
         if (mediaType === 'movie') {
-            ui.clearExistentMovieModal();
+            ui.clearExistentModal();
+            ui.disableScroll();
             setTimeout(() => {
-                ui.disableScroll();
-                getMovieDetails(id)
-                getMovieCast(id);
-                getSimilarMovies(id);
+                createMovieDetailsModal(id);
             }, 5)
             return;
         }
         if (mediaType === 'tv') {
-            ui.clearExistentMovieModal();
+            ui.clearExistentModal();
             setTimeout(() => {
                 ui.disableScroll();
-                getTvShowDetails(id);
-                getTvShowCast(id);
-                getSimilarTvShows(id);
+                createTvShowDetailsModal(id);
             }, 5)
         }
     })
@@ -139,19 +144,22 @@ function initEventListeners() {
     // Aside links for movies
     
         // Genres links
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
         if (e.target.hasAttribute('data-link-movie-genre-id')) {
             e.preventDefault();
-            const genreId = e.target.getAttribute('data-link-movie-genre-id');
-            dataCtrl.currentMediaType = 'movie';
-            dataCtrl.currentPage = 1;
-            ui.clearMainContainer();
             ui.toggleAsideSection();
-            getMoviesBasedOnGenre(genreId);
+            ui.clearMainContainer();
+            dataCtrl.currentPage = 1;
+            dataCtrl.currentMediaType = 'movie';
+            const genreId = e.target.getAttribute('data-link-movie-genre-id');
+            const movies = await getMoviesBasedOnGenre(genreId, 1);
+            uiMovies.showSearched(movies);
+            const url = urlCtrl.getUrlForDiscoveringMoviesByGenres(genreId, dataCtrl.currentPage)
+            ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
         }
     })
         // Year links
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
         if (e.target.hasAttribute('data-link-movie-year')) {
             e.preventDefault();
             ui.toggleAsideSection();
@@ -159,14 +167,17 @@ function initEventListeners() {
             dataCtrl.currentPage = 1;
             dataCtrl.currentMediaType = 'movie';
             const year = parseInt(e.target.getAttribute('data-link-movie-year'));
-            getMoviesBasedOnYear(year);
+            const movies = await getMoviesBasedOnYear(year, 1);
+            uiMovies.showSearched(movies);
+            const url = urlCtrl.getUrlForDiscoveringMoviesByYear(year);
+            ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
         }
 
     })
 
     // Aside links for Tv Shows
         // Genres links
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
     if (e.target.hasAttribute('data-link-tvShow-genre-id')) {
         e.preventDefault();
         const genreId = e.target.getAttribute('data-link-tvShow-genre-id');
@@ -174,12 +185,15 @@ function initEventListeners() {
         ui.toggleAsideSection();
         dataCtrl.currentMediaType = 'tv';
         dataCtrl.currentPage = 1;
-        getTvShowsBasedOnGenre(genreId);
+        const tvShows = await getTvShowsBasedOnGenre(genreId, 1);
+        uiTv.showSearched(tvShows);
+        const url = urlCtrl.getUrlForDiscoveringTvShowsByGenres(genreId, 1);
+        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
     }    
     })
 
         // Year link
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
         if (e.target.hasAttribute('data-link-tvShow-year')) {
             e.preventDefault();
             ui.toggleAsideSection();
@@ -187,7 +201,10 @@ function initEventListeners() {
             console.log(year)
             dataCtrl.currentMediaType = 'tv';
             dataCtrl.currentPage = 1;
-            getTvShowBasedOnYear(year);
+            const tvShows = await getTvShowsBasedOnYear(year, 1);
+            uiTv.showSearched(tvShows);
+            const url = urlCtrl.getUrlForDiscoveringTvShowsByYear(year, 1);
+            ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
         }
 
     })
@@ -215,18 +232,20 @@ function initEventListeners() {
 }
 
 
-function getData(url, callback) {
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            if (data.total_pages) {
-                dataCtrl.totalPages = data.total_pages;
-            } else {
-                dataCtrl.totalPages = 1;
-            }
-            callback(data)
-        })
-        .catch(err => console.log(err))
+function getData(url) {
+    return new Promise((resolve, reject) => {
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.total_pages) {
+                    dataCtrl.totalPages = data.total_pages;
+                } else {
+                    dataCtrl.totalPages = 1;
+                }
+                resolve(data);
+            })
+            .catch(err => reject(err))
+    })
 }
 
 function newUrlForNextPage(url) {
@@ -247,27 +266,24 @@ function newUrlForPreviousPage(url) {
     return newUrl;
 }
 
-function changePage(url) {
-    getData(url, (data) => {
-        ui.clearMainContainer();
-        switch (dataCtrl.currentMediaType) {
-            case 'movie': {
-                uiMovies.showSearchedMovies(data, dataCtrl.genresArrMovies);
-                break;
-            }
-            case 'tv': {
-                uiTv.showSearchedTvShows(data, dataCtrl.genresArrMovies);
-                break;
-            }
-            case 'all': {
-                ui.showSearchedAll(data, dataCtrl.genresArrTvShows,dataCtrl.genresArrMovies,);
-                break;
-            }
+async function changePage(url) {
+    ui.clearMainContainer();
+    const data = await getData(url);
+    switch (dataCtrl.currentMediaType) {
+        case 'movie': {
+            uiMovies.showSearched(data);
+            break;
         }
-        console.log('This is the callback', dataCtrl.totalPages)
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-       
-    })
+        case 'tv': {
+            uiTv.showSearched(data);
+            break;
+        }
+        case 'all': {
+            ui.showSearchedAll(data, uiTv.genresArrTvShows, uiMovies.genresArrMovies,);
+            break;
+        }
+    }
+    ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
 }
 
 
@@ -292,7 +308,7 @@ function changeState(state) {
     
 }
 
-function changeStateToHome() {
+async function changeStateToHome() {
     ui.clearMainContainer();
     ui.removeAsideSection();
     const html = `
@@ -301,12 +317,18 @@ function changeStateToHome() {
         <div class="action_movies"></div>
     `;
     ui.mainContainer.insertAdjacentHTML('afterbegin', html);
-    getTrendingMovies();
-    getTrendingTvShows();
-    getActionMovies();
+
+    const trendingMovies = await getTrendingMovies(1);
+    uiMovies.showTrending(trendingMovies);
+
+    const trendingTvShows = await getTrendingTvShows(1);
+    uiTv.showTrending(trendingTvShows);
+
+    const actionMovies = await getMoviesBasedOnGenre(28,1);
+    uiMovies.showAction(actionMovies)
 }
 
-function changeStateToMovies() {
+async function changeStateToMovies() {
     ui.removeAsideSection();
     ui.clearMainContainer();
     const html = `
@@ -315,13 +337,19 @@ function changeStateToMovies() {
         <div class="crime_movies"></div>
     `;
     ui.mainContainer.insertAdjacentHTML('afterbegin', html);
-    getTrendingMovies();
-    getActionMovies();
-    getCrimeMovies();
-    uiMovies.createAsideMenuForMovies();
+    const trendingMovies = await getTrendingMovies(1);
+    uiMovies.showTrending(trendingMovies);
+
+    const actionMovies = await getMoviesBasedOnGenre(28,1);
+    uiMovies.showAction(actionMovies)
+
+    const crimeMovies = await getMoviesBasedOnGenre(80,1);
+    uiMovies.showCrime(crimeMovies);
+
+    uiMovies.createAsideMenu();
 }
 
-function changeStateToTvShows() {
+async function changeStateToTvShows() {
     ui.removeAsideSection();
     ui.clearMainContainer();
     const html = `
@@ -330,10 +358,17 @@ function changeStateToTvShows() {
         <div class="crime_tvShows"></div>
     `;
     ui.mainContainer.insertAdjacentHTML('afterbegin', html);
-    getTrendingTvShows();
-    getDramaTvShows();
-    getCrimeTvShows();
-    uiTv.createAsideMenuForTvShows();
+
+    const trendingTvShows = await getTrendingTvShows(1);
+    uiTv.showTrending(trendingTvShows);
+
+    const dramaTvShows = await getTvShowsBasedOnGenre(18, 1);
+    uiTv.showDrama(dramaTvShows);
+    
+    const crimeTvShows = await getTvShowsBasedOnGenre(80, 1);
+    uiTv.showCrime(crimeTvShows);
+
+    uiTv.createAsideMenu();
 }
 
 
@@ -343,143 +378,117 @@ function changeStateToTvShows() {
    // GET STUFF FUNCTIONS
 
     // For movies
-function getMoviesBasedOnGenre(genreId) {
-    const url = urlCtrl.getUrlForDiscoveringMoviesByGenres(genreId, 1);
-    getData(url, (data) => {
-        uiMovies.showSearchedMovies(data, dataCtrl.genresArrMovies);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+async function getMoviesBasedOnGenre(genreId, pageNr) {
+    const url = urlCtrl.getUrlForDiscoveringMoviesByGenres(genreId, pageNr);
+    const data = await getData(url);
+    return data;
 }
 
-function getMoviesBasedOnYear(year) {
-    const url = urlCtrl.getUrlForDiscoveringMoviesByYear(year, 1);
-    getData(url, (data) => {
-        uiMovies.showSearchedMovies(data, dataCtrl.genresArrMovies);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+async function getMoviesBasedOnYear(year, pageNr) {
+    const url = urlCtrl.getUrlForDiscoveringMoviesByYear(year, pageNr);
+    const data = await getData(url);
+    return data;
 }
 
-function getTrendingMovies() {
-    const url = urlCtrl.getUrlForTrendingItems('week', 'movie', 1);
-    getData(url, (data) => {
-        uiMovies.showTrendingMovies(data, dataCtrl.genresArrMovies);
-    })
+async function getTrendingMovies(pageNr) {
+    const url = urlCtrl.getUrlForTrendingItems('week', 'movie', pageNr);
+    const data = await getData(url);
+    return data;
 }
 
-function getActionMovies() {
-    const url = urlCtrl.getUrlForDiscoveringMoviesByGenres(28)
-    getData(url, (data) => {
-        uiMovies.showActionMovies(data, dataCtrl.genresArrMovies)
-    });
-}
 
-function getCrimeMovies() {
-    const url = urlCtrl.getUrlForDiscoveringMoviesByGenres(80)
-    getData(url, (data) => {
-        uiMovies.showCrimeMovies(data, dataCtrl.genresArrMovies);
-    });
-}
-
-function getSearchedMovies(query, pageNumber) {
+async function getSearchedMovies(query, pageNumber) {
     const url = urlCtrl.getUrlForQueryMovieSearch(query, pageNumber,)
-    getData(url, (data) => {
-        uiMovies.showSearchedMovies(data, dataCtrl.genresArrMovies);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+    const data = await getData(url);
+    return data;
 }
 
-function getMovieCast(id) {
+async function getMovieCast(id) {
     const url = urlCtrl.getUrlForMovieCast(id);
-    getData(url, (data) => {
-        uiMovies.showMovieCast(data);
-    });
+    const data = await getData(url);
+    return data;
 }
 
-function getSimilarMovies(id) {
+async function getSimilarMovies(id) {
     const url = urlCtrl.getUrlForSimilarMovies(id, 1);
-    getData(url, (data) => {
-        uiMovies.showSimilarMovies(data, dataCtrl.genresArrMovies)
-    });
+    const data = await getData(url);
+    return data;
 }
 
-function getMovieDetails(id) {
+async function getMovieDetails(id) {
     const url = urlCtrl.getUrlForMovieDetails(id);
-    getData(url, (data) => {
-        uiMovies.showMovieDetails(data)
-    })
+    const data = await getData(url);
+    return data;
 }
+
+async function createMovieDetailsModal(id) {
+    const movieDetails = await getMovieDetails(id);
+    uiMovies.showDetails(movieDetails);
+
+    const similarMovies = await getSimilarMovies(id);
+    uiMovies.showSimilar(similarMovies);
+
+    const movieCast = await getMovieCast(id);
+    uiMovies.showCast(movieCast)
+}
+
 
     // TV SHOWS
-function getTrendingTvShows() {
+async function getTrendingTvShows() {
     const url = urlCtrl.getUrlForTrendingItems('week', 'tv', 1);
-    getData(url, (data) => {
-        uiTv.showTrendingTvShows(data, dataCtrl.genresArrTvShows);
-    })
+    const data = await getData(url);
+    return data;
 }
 
-function getTvShowsBasedOnGenre(genreId, pageNr) {
+async function getTvShowsBasedOnGenre(genreId, pageNr) {
     const url = urlCtrl.getUrlForDiscoveringTvShowsByGenres(genreId, pageNr);
-    getData(url, (data) => {
-        uiTv.showSearchedTvShows(data, dataCtrl.genresArrTvShows);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+    const data = await getData(url);
+    return data;
 }
 
-function getTvShowBasedOnYear(year) {
-    const url = urlCtrl.getUrlForDiscoveringTvShowsByYear(year, 1);
-    getData(url, (data) => {
-        uiTv.showSearchedTvShows(data, dataCtrl.genresArrTvShows);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+async function getTvShowsBasedOnYear(year, pageNr) {
+    const url = urlCtrl.getUrlForDiscoveringTvShowsByYear(year, pageNr);
+    const data = await getData(url);
+    return data;
 }
 
-function getDramaTvShows() {
-    const url = urlCtrl.getUrlForDiscoveringTvShowsByGenres('18', 1);
-    getData(url, (data) => {
-        uiTv.showDramaTvShows(data, dataCtrl.genresArrTvShows);
-    })
+
+async function getSearchedTvShows(query, pageNumber) {
+    const url = urlCtrl.getUrlForQueryTvShowsSearch(query, pageNumber);
+    const data = await getData(url);
+    return data;
 }
 
-function getCrimeTvShows() {
-    const url = urlCtrl.getUrlForDiscoveringTvShowsByGenres('80', 1);
-    getData(url, (data) => {
-        uiTv.showCrimeTvShows(data, dataCtrl.genresArrTvShows);
-    })
-}
-
-function getSearchedTvShows(query, pageNumber) {
-    const url = urlCtrl.getUrlForQueryTvShowsSearch(query, pageNumber,)
-    getData(url, (data) => {
-        uiTv.showSearchedTvShows(data, dataCtrl.genresArrTvShows);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
-}
-
-function getTvShowCast(id) {
+async function getTvShowCast(id) {
     const url = urlCtrl.getUrlForTvShowCast(id);
-    getData(url, (data) => {
-        uiTv.showTvShowCast(data);
-    });
+    const data = await getData(url);
+    return data;
 }
 
-function getTvShowDetails(id) {
+async function getTvShowDetails(id) {
     const url = urlCtrl.getUrlForTvShowDetails(id);
-    getData(url, (data) => {
-        uiTv.showTvShowDetails(data);
-    });
+    const data = await getData(url);
+    return data;
 }
 
-function getSimilarTvShows(id) {
+async function getSimilarTvShows(id) {
     const url = urlCtrl.getUrlForSimilarTvShows(id, 1);
-    getData(url, (data) => {
-        uiTv.showSimilarTvShows(data, dataCtrl.genresArrTvShows)
-    });
+    const data = await getData(url);
+    return data;
 }
+
+async function createTvShowDetailsModal(id) {
+    const tvShowDetails = await getTvShowDetails(id);
+    uiTv.showDetails(tvShowDetails);
+    const similarTvShows = await getSimilarTvShows(id);
+    uiTv.showSimilar(similarTvShows, dataCtrl.genresArrTvShows);
+    const tvShowCast = await getTvShowCast(id);
+    uiTv.showCast(tvShowCast);
+}
+
     // BOTH
-function getSearchedMoviesAndTvShows(query, pageNumber) {
+async function getSearchedMoviesAndTvShows(query, pageNumber) {
     const url = urlCtrl.getUrlForQueryMultiSearch(query, pageNumber);
-    getData(url, (data) => {
-        ui.showSearchedAll(data, dataCtrl.genresArrTvShows, dataCtrl.genresArrMovies);
-        ui.createChangePageButtons(url, dataCtrl.currentPage, dataCtrl.totalPages);
-    })
+    const data = await getData(url);
+    return data;
 }

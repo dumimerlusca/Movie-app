@@ -3,9 +3,10 @@ import { UICtrl } from './ui.js';
 class UITv extends UICtrl {
     constructor() {
         super();
+        this.genres = [{ "id": 10759, "name": "Action & Adventure" }, { "id": 16, "name": "Animation" }, { "id": 35, "name": "Comedy" }, { "id": 80, "name": "Crime" }, { "id": 99, "name": "Documentary" }, { "id": 18, "name": "Drama" }, { "id": 10751, "name": "Family" }, { "id": 10762, "name": "Kids" }, { "id": 9648, "name": "Mystery" }, { "id": 10763, "name": "News" }, { "id": 10764, "name": "Reality" }, { "id": 10765, "name": "Sci-Fi & Fantasy" }, { "id": 10766, "name": "Soap" }, { "id": 10767, "name": "Talk" }, { "id": 10768, "name": "War & Politics" }, { "id": 37, "name": "Western" }];
     }
     
-    showTvShowDetails(tvShow) {
+    showDetails(tvShow) {
         let videoId = '';
         if(tvShow.videos.results[0]) {
             videoId = tvShow.videos.results[0].key;
@@ -74,7 +75,7 @@ class UITv extends UICtrl {
         document.body.appendChild(detailsModal);
     }
 
-    showSimilarTvShows(data, genresArr) {
+    showSimilar(data) {
         const container = document.querySelector('.similar_movies_cards_container');
         if (!container) {
             setTimeout(() => {
@@ -83,13 +84,13 @@ class UITv extends UICtrl {
         } else {
             const tvShows = data.results;
             tvShows.forEach(tvShow => {
-                const tvShowEl = super.createTvShowElement(tvShow, genresArr);
+                const tvShowEl = super.createTvShowElement(tvShow, this.genres);
                 container.appendChild(tvShowEl);
             })
         }
     }
 
-    showTvShowCast(data) {
+    showCast(data) {
         console.log('Tv show Cast: ', data)
         const actorsContainer = document.querySelector('.actors');
         console.log(actorsContainer);
@@ -107,7 +108,7 @@ class UITv extends UICtrl {
         }
     }
 
-    showSearchedTvShows(data, genresArr) {
+    showSearched(data) {
         this.clearMainContainer();
         const container = document.createElement('div');
         container.className = 'searched_items_container';
@@ -115,13 +116,13 @@ class UITv extends UICtrl {
         const tvShows = data.results;
         tvShows.forEach(tvShow => {
             if (!tvShow.poster_path) return;
-            const item = super.createTvShowElement(tvShow, genresArr);
+            const item = super.createTvShowElement(tvShow, this.genres);
             container.appendChild(item);
         })
 
     }
 
-    showTrendingTvShows(data, genresArr) {
+    showTrending(data) {
         const trendingTvShows = this.mainContainer.querySelector('.trending_tvShows');
         trendingTvShows.innerHTML = `
             <div class="container">
@@ -135,12 +136,12 @@ class UITv extends UICtrl {
         `;
         const tvShows = data.results;
         tvShows.forEach(tvShow => {
-            const item = super.createTvShowElement(tvShow, genresArr);
+            const item = super.createTvShowElement(tvShow, this.genres);
             trendingTvShows.querySelector("#trending_tvShows_container").appendChild(item);
         })
     }
 
-    showDramaTvShows(data, genresArr) {
+    showDrama(data) {
         const dramaTvShows = this.mainContainer.querySelector('.drama_tvShows');
         dramaTvShows.innerHTML = `
             <div class="container">
@@ -154,12 +155,12 @@ class UITv extends UICtrl {
         `;
         const tvShows = data.results;
         tvShows.forEach(tvShow => {
-            const item = super.createTvShowElement(tvShow, genresArr);
+            const item = super.createTvShowElement(tvShow, this.genres);
             dramaTvShows.querySelector("#drama_tvShows_container").appendChild(item);
         })
     }
 
-    showCrimeTvShows(data, genresArr) {
+    showCrime(data) {
         const crimeTvShows = this.mainContainer.querySelector('.crime_tvShows');
         crimeTvShows.innerHTML = `
             <div class="container">
@@ -173,12 +174,12 @@ class UITv extends UICtrl {
         `;
         const tvShows = data.results;
         tvShows.forEach(tvShow => {
-            const item = super.createTvShowElement(tvShow, genresArr);
+            const item = super.createTvShowElement(tvShow, this.genres);
             crimeTvShows.querySelector("#crime_tvShows_container").appendChild(item);
         })
     }
 
-    createAsideMenuForTvShows() {
+    createAsideMenu() {
         if (document.querySelector('.aside_section')) return;
         const asideSection = document.createElement('aside');
         asideSection.className = 'aside_section';

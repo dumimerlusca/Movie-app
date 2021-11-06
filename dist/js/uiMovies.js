@@ -3,9 +3,10 @@ import { UICtrl } from './ui.js';
 class UIMovies extends UICtrl {
     constructor() {
         super();
+        this.genres = [{ "id": 28, "name": "Action" }, { "id": 12, "name": "Adventure" }, { "id": 16, "name": "Animation" }, { "id": 35, "name": "Comedy" }, { "id": 80, "name": "Crime" }, { "id": 99, "name": "Documentary" }, { "id": 18, "name": "Drama" }, { "id": 10751, "name": "Family" }, { "id": 14, "name": "Fantasy" }, { "id": 36, "name": "History" }, { "id": 27, "name": "Horror" }, { "id": 10402, "name": "Music" }, { "id": 9648, "name": "Mystery" }, { "id": 10749, "name": "Romance" }, { "id": 878, "name": "Science Fiction" }, { "id": 10770, "name": "TV Movie" }, { "id": 53, "name": "Thriller" }, { "id": 10752, "name": "War" }, { "id": 37, "name": "Western" }];
     }
 
-    showMovieDetails(movie) {
+    showDetails(movie) {
         let videoId = '';
         if(movie.videos.results[0]) {
             videoId = movie.videos.results[0].key;
@@ -68,54 +69,40 @@ class UIMovies extends UICtrl {
 
         </div>
         `;
-
         document.body.appendChild(detailsModal);
     }
 
-    showMovieCast(data) {
+    showCast(data) {
         const actorsContainer = document.querySelector('.actors');
-        if (!actorsContainer) {
-            setTimeout(() => {
-                this.showMovieCast(data);
-            },100)
-        } else {
-            const actors = data.cast.slice(0, 5);
-            actors.forEach(actor => {
-                const actorEl = super.createActorElement(actor);
-                actorsContainer.appendChild(actorEl)
-            })
-        }
-
+        const actors = data.cast.slice(0, 5);
+        actors.forEach(actor => {
+            const actorEl = super.createActorElement(actor);
+            actorsContainer.appendChild(actorEl)
+        })
     }
 
-    showSimilarMovies(data, genresArr) {
+    showSimilar(data) {
         const container = document.querySelector('.similar_movies_cards_container');
-        if (!container) {
-            setTimeout(() => {
-                this.showSimilarMovies(data, genresArr);
-            }, 100)
-        } else {
-            const movies = data.results;
-            movies.forEach(movie => {
-                const movieEl = super.createMovieElement(movie, genresArr);
-                container.appendChild(movieEl);
-            })
-        }
+        const movies = data.results;
+        movies.forEach(movie => {
+            const movieEl = super.createMovieElement(movie, this.genres);
+            container.appendChild(movieEl);
+        })
     }
 
-    showSearchedMovies(data, genresArr) {
+    showSearched(data) {
         const container = document.createElement('div');
         container.className = 'searched_items_container';
         this.mainContainer.insertAdjacentElement('afterbegin', container);
         const movies = data.results;
         movies.forEach(movie => {
             if (!movie.poster_path) return;
-            const item = super.createMovieElement(movie, genresArr);
+            const item = super.createMovieElement(movie, this.genres);
             container.appendChild(item);
         })
     }
 
-    showTrendingMovies(data, genresArr) {
+    showTrending(data) {
         const trendingMoviesContainer = this.mainContainer.querySelector('.trending_movies');
         trendingMoviesContainer.innerHTML = `
         <div class="container">
@@ -129,12 +116,12 @@ class UIMovies extends UICtrl {
         `;
         const movies = data.results;
         movies.forEach(movie => {
-            const item = super.createMovieElement(movie, genresArr);
+            const item = super.createMovieElement(movie, this.genres);
             trendingMoviesContainer.querySelector("#trending_movies_container").appendChild(item);
         })
     }
 
-    showActionMovies(data, genresArr) {
+    showAction(data) {
         const actionMoviesContainer = this.mainContainer.querySelector('.action_movies');
         actionMoviesContainer.innerHTML = `
         <div class="container">
@@ -148,12 +135,12 @@ class UIMovies extends UICtrl {
         `;
         const movies = data.results;
         movies.forEach(movie => {
-            const item = super.createMovieElement(movie, genresArr);
+            const item = super.createMovieElement(movie, this.genres);
             actionMoviesContainer.querySelector("#action_movies").appendChild(item);
         })
     }
 
-    showCrimeMovies(data, genresArr) {
+    showCrime(data) {
         const crimeMoviesContainer = this.mainContainer.querySelector('.crime_movies');
         crimeMoviesContainer.innerHTML = `
         <div class="container">
@@ -167,7 +154,7 @@ class UIMovies extends UICtrl {
         `;
         const movies = data.results;
         movies.forEach(movie => {
-            const item = super.createMovieElement(movie, genresArr);
+            const item = super.createMovieElement(movie, this.genres);
             crimeMoviesContainer.querySelector("#crime_movies").appendChild(item);
         })
     }
@@ -180,7 +167,7 @@ class UIMovies extends UICtrl {
         this.moviesContainer.innerHTML = '';
     }
 
-    createAsideMenuForMovies() {
+    createAsideMenu() {
         if (document.querySelector('.aside_section')) return;
         const asideSection = document.createElement('aside');
         asideSection.className = 'aside_section';

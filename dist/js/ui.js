@@ -131,7 +131,7 @@ export class UICtrl {
         document.querySelector('html').style.overflow = 'auto';
     }
 
-    clearExistentMovieModal() {
+    clearExistentModal() {
         const modal = document.querySelector('.details_about_item_modal');
         if (modal) {
             modal.remove();
