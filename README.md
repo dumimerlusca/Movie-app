@@ -1,6 +1,8 @@
 # Movie-app / Single page app / Vanilla javascript / dynamic content
 Movie app
 
+![alt text](https://i.ibb.co/XbdrHBn/movie-App1.png)
+
 Single page app for searching movies and tv show
 
 Vanilla javascript for pretty much everything
