@@ -1,5 +1,6 @@
 # Movie-app / Single page app / Vanilla javascript / dynamic content
-Movie app
+Movie app</br>
+Check live project https://nostalgic-benz-8583f9.netlify.app/
 
 ![alt text](https://i.ibb.co/XbdrHBn/movie-App1.png)
 
