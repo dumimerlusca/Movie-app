@@ -2,7 +2,7 @@
 Movie app</br>
 Check live project https://nostalgic-benz-8583f9.netlify.app/
 
-![alt text](https://i.ibb.co/bQ7kF5P/movie2.png)
+![alt text](https://i.ibb.co/Kq4CD6M/Movies3.png)
 
 Single page app for searching movies and tv show
 
